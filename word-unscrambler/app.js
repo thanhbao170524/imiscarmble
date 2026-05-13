@@ -476,6 +476,12 @@ function setVisible(el, v) {
  * is the only gate. Definitions are fetched lazily per page.
  */
 async function findWords() {
+  if (!_dictReady) {
+    showGFeedback && showGFeedback('Dictionary still loading, please wait...', 'warn');
+    const btn = document.getElementById('searchBtn');
+    if (btn) { btn.textContent = 'Loading...'; setTimeout(() => { btn.innerHTML = '<span class="btn-text">Find Words</span><span class="btn-icon">→</span>'; }, 1500); }
+    return;
+  }
   const raw = input.value;
   const word = sanitizeInput(raw).trim();
   input.value = word;
@@ -657,8 +663,22 @@ shakeStyle.textContent = `
 `;
 document.head.appendChild(shakeStyle);
 
+// ── Init: wait for dictionary then reveal app ──
+onDictionaryReady(() => {
+  // Hide loading overlay
+  const loader = document.getElementById('dictLoader');
+  if (loader) {
+    loader.style.opacity = '0';
+    loader.style.pointerEvents = 'none';
+    setTimeout(() => loader.remove(), 400);
+  }
+  // Pre-warm game word pool in background (non-blocking)
+  setTimeout(buildGameWordPool, 0);
+});
+
 initParticles();
-input.focus();
+// Focus input after fonts settle
+setTimeout(() => { const inp = document.getElementById('wordInput'); if (inp) inp.focus(); }, 200);
 
 // ------------------------------------------
 //   GAME MODE
@@ -953,7 +973,14 @@ function tickGameTimer() {
 }
 
 // -- Entry point ----------------------------
+// Real-time validation debounce timer
+let _customWordTimer = null;
+
 function startGame() {
+  if (!_dictReady) {
+    alert('Dictionary is still loading. Please wait a moment!');
+    return;
+  }
   buildGameWordPool();
   // Reset custom input state each time modal opens
   const inp = document.getElementById("customWordInput");
@@ -961,6 +988,44 @@ function startGame() {
   if (inp) {
     inp.value = "";
     inp.className = "custom-word-input";
+    // Attach real-time validation (only once)
+    if (!inp._dictValidatorAttached) {
+      inp._dictValidatorAttached = true;
+      inp.addEventListener("input", () => {
+        clearTimeout(_customWordTimer);
+        const errEl = document.getElementById("customWordError");
+        const val = inp.value.trim().toLowerCase();
+
+        // Clear state if empty
+        if (!val) {
+          inp.className = "custom-word-input";
+          if (errEl) { errEl.className = "custom-word-error"; errEl.textContent = ""; }
+          return;
+        }
+
+        // Debounce 350ms so we don't check on every keystroke
+        _customWordTimer = setTimeout(() => {
+          if (val.length < 3) {
+            inp.className = "custom-word-input invalid";
+            if (errEl) { errEl.className = "custom-word-error"; errEl.textContent = "⚠️ Word must be at least 3 letters"; }
+            return;
+          }
+          if (!DICTIONARY.has(val)) {
+            inp.className = "custom-word-input invalid";
+            if (errEl) { errEl.className = "custom-word-error"; errEl.textContent = `❌ "${val}" is not a valid English word`; }
+          } else {
+            inp.className = "custom-word-input valid";
+            const subs = findGameCandidates(val);
+            if (errEl) {
+              errEl.className = "custom-word-error success";
+              errEl.textContent = subs.length === 0
+                ? "✅ Valid word! (No sub-words though — still playable)"
+                : `✅ Valid! ${subs.length} sub-word${subs.length > 1 ? "s" : ""} to find`;
+            }
+          }
+        }, 350);
+      });
+    }
   }
   if (err) err.textContent = "";
   document.getElementById("timePicker").style.display = "flex";
@@ -996,8 +1061,19 @@ function beginGame(minutes) {
   // Validate custom word if provided
   if (customVal) {
     if (customVal.length < 3) {
-      if (err) err.textContent = "? Word must be at least 3 letters";
+      if (err) err.textContent = "⚠️ Word must be at least 3 letters";
       if (inp) inp.className = "custom-word-input invalid";
+      return;
+    }
+
+    // ── Dictionary check: từ phải là từ tiếng Anh có nghĩa ──
+    if (!DICTIONARY.has(customVal)) {
+      if (err) err.textContent = `❌ "${customVal}" is not a valid English word. Please try another word.`;
+      if (inp) {
+        inp.className = "custom-word-input invalid";
+        inp.focus();
+        inp.select();
+      }
       return;
     }
 

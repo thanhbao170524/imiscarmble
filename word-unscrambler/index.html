@@ -10,13 +10,23 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Non-render-blocking font load -->
+    <link rel="preload" as="style"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    </noscript>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <!-- Dictionary loading overlay -->
+    <div class="dict-loader" id="dictLoader">
+      <div class="dict-loader-inner">
+        <div class="dict-spinner"></div>
+        <p>Loading dictionary<span class="dict-dots"></span></p>
+      </div>
+    </div>
     <div class="bg-particles" id="particles"></div>
 
     <div class="app-wrapper">
@@ -278,7 +288,7 @@
       </div>
     </div>
 
-    <script src="dictionary.js"></script>
-    <script src="app.js"></script>
+    <script src="dictionary.js" defer></script>
+    <script src="app.js" defer></script>
   </body>
 </html>
