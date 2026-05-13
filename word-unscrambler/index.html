@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Choi game cung imilinh cute xinhdepdethuongthongminhsiucap</title>
+    <meta
+      name="description"
+      content="imi siu dethuong xinh dep choi game zui ze"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Animated background particles -->
+    <div class="bg-particles" id="particles"></div>
+
+    <div class="app-wrapper">
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">
+          <span class="logo-icon">✦</span>
+          <span class="logo-text">WordCraft</span>
+        </div>
+        <p class="tagline">Discover hidden words inside any word</p>
+      </header>
+
+      <!-- Search Section -->
+      <section class="search-section">
+        <div class="search-card">
+          <div class="search-label">Enter a word to unscramble</div>
+          <div class="search-box">
+            <input
+              type="text"
+              id="wordInput"
+              class="search-input"
+              placeholder="e.g. account, planet, history..."
+              maxlength="20"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="search-btn" id="searchBtn" onclick="findWords()">
+              <span class="btn-text">Find Words</span>
+              <span class="btn-icon">→</span>
+            </button>
+          </div>
+          <!-- Letter tiles preview -->
+          <div class="letter-tiles" id="letterTiles"></div>
+        </div>
+      </section>
+
+      <!-- Back Navigation Bar -->
+      <div class="back-bar" id="backBar" style="display:none;">
+        <button class="back-btn" id="backBtn" onclick="goBack()">
+          <span class="back-arrow">←</span>
+          <span class="back-label" id="backLabel">Back to <strong id="backWord"></strong></span>
+        </button>
+        <div class="breadcrumb" id="breadcrumb"></div>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="stats-bar" id="statsBar" style="display: none">
+        <div class="stat-item">
+          <span class="stat-num" id="totalCount">0</span>
+          <span class="stat-label">Words Found</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num" id="uniqueLetters">0</span>
+          <span class="stat-label">Letters Used</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-num" id="longestWord">–</span>
+          <span class="stat-label">Longest Word</span>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar" id="filterBar" style="display: none">
+        <span class="filter-label">Filter by length:</span>
+        <div class="filter-buttons" id="filterButtons"></div>
+        <button class="sort-btn" id="sortBtn" onclick="toggleSort()">
+          <span id="sortLabel">Sort: A–Z</span>
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading" id="loading" style="display: none">
+        <div class="spinner"></div>
+        <p>Searching dictionary...</p>
+      </div>
+
+      <!-- Results -->
+    <section class="results-section" id="resultsSection" style="display:none;">
+      <div class="results-grid" id="resultsGrid"></div>
+      <!-- Pagination -->
+      <nav class="pagination" id="pagination" style="display:none;" aria-label="Word pages"></nav>
+    </section>
+
+      <!-- Empty state -->
+      <div class="empty-state" id="emptyState" style="display: none">
+        <div class="empty-icon">🔍</div>
+        <h3>No words found</h3>
+        <p>Try a longer word with more letters</p>
+      </div>
+
+      <!-- Hero / intro when no search yet -->
+      <div class="hero-intro" id="heroIntro">
+        <div class="hero-examples">
+          <p class="hero-subtitle">Try these examples:</p>
+          <div class="example-chips">
+            <button class="chip" onclick="useExample('account')">
+              account
+            </button>
+            <button class="chip" onclick="useExample('planet')">planet</button>
+            <button class="chip" onclick="useExample('history')">
+              history
+            </button>
+            <button class="chip" onclick="useExample('garden')">garden</button>
+            <button class="chip" onclick="useExample('master')">master</button>
+            <button class="chip" onclick="useExample('stream')">stream</button>
+          </div>
+        </div>
+        <div class="hero-how">
+          <div class="how-item">
+            <span class="how-icon">⌨️</span>
+            <span>Type any English word</span>
+          </div>
+          <div class="how-item">
+            <span class="how-icon">🔄</span>
+            <span>Letters get rearranged</span>
+          </div>
+          <div class="how-item">
+            <span class="how-icon">📚</span>
+            <span>Valid words appear instantly</span>
+          </div>
+        </div>
+      </div>
+
+      <footer class="footer">
+        <p>Dictionary of 10,000+ common English words · WordCraft 2025</p>
+      </footer>
+    </div>
+
+    <script src="dictionary.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
