@@ -1,11 +1,11 @@
-// ═══════════════════════════════════════════
-//   WordCraft – Main Application Logic
+// â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
+//   WordCraft â€“ Main Application Logic
 //   Validation: local DICTIONARY Set only.
 //   Definitions: fetched lazily from API with
 //   rate-limit queue + fallback.
-// ═══════════════════════════════════════════
+// â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�â•�
 
-// ── State ──────────────────────────────────
+// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let allFoundWords   = [];
 let filteredWords   = [];
 let activeFilter    = 'all';
@@ -18,7 +18,7 @@ const PAGE_SIZE     = 12;
 let searchHistory   = [];
 let currentWord     = '';
 
-// ── Built-in definitions for short / common words ───
+// â”€â”€ Built-in definitions for short / common words â”€â”€â”€
 // These bypass the API entirely.
 const SHORT_WORD_DEFS = {
   // 1-letter
@@ -60,7 +60,7 @@ const SHORT_WORD_DEFS = {
 // Pre-populate cache so short words bypass API
 const definitionCache = { ...SHORT_WORD_DEFS };
 
-// ── DOM Refs ───────────────────────────────
+// â”€â”€ DOM Refs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const input          = document.getElementById('wordInput');
 const letterTiles    = document.getElementById('letterTiles');
 const statsBar       = document.getElementById('statsBar');
@@ -80,7 +80,7 @@ const backBar        = document.getElementById('backBar');
 const backWord       = document.getElementById('backWord');
 const breadcrumb     = document.getElementById('breadcrumb');
 
-// ── Background Particles ───────────────────
+// â”€â”€ Background Particles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function initParticles() {
   const container = document.getElementById('particles');
   const colors = ['#7c5cfc','#00d4aa','#ff6b9d','#81d8f7','#ffb56b'];
@@ -98,7 +98,7 @@ function initParticles() {
   }
 }
 
-// ── Input Validation ───────────────────────
+// â”€â”€ Input Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function sanitizeInput(val) {
   return val.replace(/[^a-zA-Z]/g, '');
 }
@@ -115,7 +115,7 @@ input.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') findWords();
 });
 
-// ── Core Algorithm ─────────────────────────
+// â”€â”€ Core Algorithm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function canForm(word, available) {
   const count = {};
   for (const ch of available) count[ch] = (count[ch] || 0) + 1;
@@ -136,7 +136,7 @@ function findCandidates(inputWord) {
   return results;
 }
 
-// ── Definition API with rate-limit queue ───
+// â”€â”€ Definition API with rate-limit queue â”€â”€â”€
 const API_BASE = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
 
 // Simple serial queue: one request at a time, 400 ms apart
@@ -187,7 +187,7 @@ function makeFallbackDef(word) {
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ── UI Helpers ─────────────────────────────
+// â”€â”€ UI Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function showLetterTiles(word) {
   letterTiles.innerHTML = '';
   [...word.toUpperCase()].forEach((ch, i) => {
@@ -235,7 +235,7 @@ function applyFilter(len) {
 function toggleSort() {
   sortMode    = sortMode === 'alpha' ? 'length' : 'alpha';
   currentPage = 1;
-  sortLabel.textContent = sortMode === 'alpha' ? 'Sort: A–Z' : 'Sort: Length';
+  sortLabel.textContent = sortMode === 'alpha' ? 'Sort: Aâ€“Z' : 'Sort: Length';
   applySortAndRender();
 }
 window.toggleSort = toggleSort;
@@ -261,7 +261,7 @@ function makeWordCard(word, def) {
       <span class="word-pos">${def.pos}</span>
     </div>
     <div class="word-len"><span>${word.length} letter${word.length>1?'s':''}</span></div>
-    <div class="word-def">${def.text.length > 90 ? def.text.slice(0,90)+'…' : def.text}</div>
+    <div class="word-def">${def.text.length > 90 ? def.text.slice(0,90)+'â€¦' : def.text}</div>
   `;
   card.addEventListener('click', () => useExample(word));
   return card;
@@ -296,14 +296,14 @@ function fetchDefinitionsForPage(pageWords) {
         const def = definitionCache[word] || makeFallbackDef(word);
         const defEl = card.querySelector('.word-def');
         const posEl = card.querySelector('.word-pos');
-        if (defEl) defEl.textContent = def.text.length > 90 ? def.text.slice(0,90)+'…' : def.text;
+        if (defEl) defEl.textContent = def.text.length > 90 ? def.text.slice(0,90)+'â€¦' : def.text;
         if (posEl) posEl.textContent = def.pos;
       }
     });
   });
 }
 
-// ── Pagination ─────────────────────────────
+// â”€â”€ Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderPagination(total) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
   if (totalPages <= 1) { setVisible(pagination, false); return; }
@@ -331,7 +331,7 @@ function renderPagination(total) {
     if (p === '...') {
       const dots = document.createElement('span');
       dots.className = 'page-dots';
-      dots.textContent = '…';
+      dots.textContent = 'â€¦';
       pagination.appendChild(dots);
     } else {
       pagination.appendChild(make(p, p));
@@ -343,7 +343,7 @@ function renderPagination(total) {
   if (currentPage === totalPages) next.disabled = true;
   pagination.appendChild(next);
 
-  // Page info text – remove old one first, then insert fresh
+  // Page info text â€“ remove old one first, then insert fresh
   const existingInfo = pagination.nextElementSibling;
   if (existingInfo && existingInfo.classList.contains('page-info')) existingInfo.remove();
 
@@ -351,7 +351,7 @@ function renderPagination(total) {
   info.className = 'page-info';
   const start = (currentPage - 1) * PAGE_SIZE + 1;
   const end   = Math.min(currentPage * PAGE_SIZE, total);
-  info.textContent = `Showing ${start}–${end} of ${total} words`;
+  info.textContent = `Showing ${start}â€“${end} of ${total} words`;
   pagination.after(info);
 }
 
@@ -383,15 +383,15 @@ function updateStats(words, inputWord) {
   totalCount.textContent    = words.length;
   uniqueLetters.textContent = new Set(inputWord.toLowerCase()).size;
   const longest = words.reduce((a,b) => a.length >= b.length ? a : b, '');
-  longestWord.textContent   = longest || '–';
+  longestWord.textContent   = longest || 'â€“';
 }
 
 function setVisible(el, v) { el.style.display = v ? '' : 'none'; }
 
-// ── Main Search ────────────────────────────
+// â”€â”€ Main Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 /**
  * Finds all words formable from `inputWord` using the local DICTIONARY.
- * No external API is called for validation — the Set membership check
+ * No external API is called for validation â€” the Set membership check
  * is the only gate. Definitions are fetched lazily per page.
  */
 async function findWords() {
@@ -421,7 +421,7 @@ async function findWords() {
   activeFilter  = 'all';
   currentPage   = 1;
   sortMode      = 'alpha';
-  sortLabel.textContent = 'Sort: A–Z';
+  sortLabel.textContent = 'Sort: Aâ€“Z';
 
   showLetterTiles(word);
   setVisible(heroIntro, false);
@@ -431,13 +431,13 @@ async function findWords() {
   setVisible(emptyState, false);
   setVisible(loading, true);
   resultsGrid.innerHTML = '';
-  setLoadingText('Finding words…');
+  setLoadingText('Finding wordsâ€¦');
   updateBackBar();
 
   await delay(40);
   if (currentSearch !== searchId) return;
 
-  // ── Local-only validation (instant, no API) ──
+  // â”€â”€ Local-only validation (instant, no API) â”€â”€
   const candidates = findCandidates(word);
 
   if (candidates.length === 0) {
@@ -465,7 +465,7 @@ async function findWords() {
 window.findWords = findWords;
 
 
-// ── Example Words / History ────────────────
+// â”€â”€ Example Words / History â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function useExample(word) {
   // Push current search to history before navigating
   if (currentWord && allFoundWords.length > 0) {
@@ -499,7 +499,7 @@ function goBack() {
   sortMode      = prev.sort;
   currentPage   = prev.page;
   currentWord   = prev.word;
-  sortLabel.textContent = sortMode === 'alpha' ? 'Sort: A–Z' : 'Sort: Length';
+  sortLabel.textContent = sortMode === 'alpha' ? 'Sort: Aâ€“Z' : 'Sort: Length';
 
   input.value = prev.word;
   showLetterTiles(prev.word);
@@ -552,7 +552,7 @@ function updateBackBar() {
     if (idx < trail.length - 1) {
       const sep = document.createElement('span');
       sep.className = 'crumb-sep';
-      sep.textContent = '›';
+      sep.textContent = 'â€º';
       breadcrumb.appendChild(sep);
     }
   });
@@ -570,7 +570,7 @@ function showError(msg) {
   setVisible(heroIntro, false);
 }
 
-// ── Shake CSS ──────────────────────────────
+// â”€â”€ Shake CSS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const shakeStyle = document.createElement('style');
 shakeStyle.textContent = `
   @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
@@ -578,6 +578,314 @@ shakeStyle.textContent = `
 `;
 document.head.appendChild(shakeStyle);
 
-// ── Init ───────────────────────────────────
+// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 initParticles();
 input.focus();
+
+// ------------------------------------------
+//   GAME MODE
+// ------------------------------------------
+
+// -- Game State -----------------------------
+let GAME_WORD_POOL = [];
+let gamePoolBuilt  = false;
+let gameActive     = false;
+let gameWord       = '';
+let gameAnswer     = [];   // all valid sub-words (3+ letters)
+let gameFound      = new Set();
+let gameTimerId    = null;
+let gameSecsLeft   = 0;
+
+// -- Build Pool -----------------------------
+// Curated list of common, meaningful English words for the game.
+// All are well-known words guaranteed to have clear definitions.
+const CURATED_GAME_WORDS = [
+  // 6-letter common words
+  'planet','master','stream','garden','travel','castle','forest','player',
+  'mother','finger','winter','spring','strong','bridge','center','change',
+  'charge','circle','course','credit','danger','dinner','driver','factor',
+  'family','figure','flight','flower','formal','handle','happen','health',
+  'height','island','keeper','launch','leader','length','little','lonely',
+  'market','mental','mirror','modern','moment','monkey','motion','nation',
+  'nature','narrow','notice','object','option','parent','permit','person',
+  'plenty','poster','pretty','proper','random','reason','record','repair',
+  'rescue','result','return','reveal','reward','rocket','sample','screen',
+  'search','second','settle','shadow','signal','simple','single','sister',
+  'smooth','social','source','spirit','stable','strain','street','strike',
+  'studio','summer','supply','system','target','triple','trophy','useful',
+  'valley','vendor','vision','volume','wander','weapon','window','winter',
+  'wisdom','wonder','yellow',
+  // 7-letter common words
+  'account','achieve','advance','already','another','arrange','attempt',
+  'balance','captain','capture','certain','chapter','citizen','clarity',
+  'classic','collect','comfort','command','comment','compare','complex',
+  'concern','connect','contain','context','control','country','courage',
+  'curious','current','declare','defense','deliver','deposit','despite',
+  'develop','digital','disease','dispute','freedom','general','grammar',
+  'imagine','intense','involve','journey','justice','kingdom','morning',
+  'mystery','network','nothing','officer','opinion','perfect','picture',
+  'popular','protect','provide','quality','realize','recover','release',
+  'respect','restore','romance','science','section','service','session',
+  'shelter','silence','similar','society','student','subject','success',
+  'support','through','tonight','trouble','typical','variety','venture',
+  'version','village','virtual','welcome','western','without','century',
+  'library','history','feature','payment','present','process','summary',
+];
+
+// Called once lazily. Filters curated list to words in DICTIONARY with
+// enough sub-words to make the game interesting.
+function buildGameWordPool() {
+  if (gamePoolBuilt) return;
+  gamePoolBuilt = true;
+  GAME_WORD_POOL = CURATED_GAME_WORDS.filter(word => {
+    if (!DICTIONARY.has(word)) return false;
+    const subs = findGameCandidates(word);
+    return subs.length >= 8;
+  });
+  // Fallback: use the full curated list if filter is too strict
+  if (GAME_WORD_POOL.length < 10) {
+    GAME_WORD_POOL = CURATED_GAME_WORDS.filter(w => DICTIONARY.has(w));
+  }
+}
+
+// Sub-words: all lengths in DICTIONARY, formable from gameWord's letters
+function findGameCandidates(inputWord) {
+  const letters = inputWord.toLowerCase().split('');
+  const res = [];
+  for (const word of DICTIONARY) {
+    if (word === inputWord.toLowerCase()) continue;
+    if (canForm(word, letters)) res.push(word);
+  }
+  return res;
+}
+
+// -- Shuffle helper -------------------------
+function shuffleStr(str) {
+  const a = str.split('');
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.join('');
+}
+
+// -- Timer display --------------------------
+function updateGameTimer() {
+  const m = Math.floor(gameSecsLeft / 60).toString().padStart(2, '0');
+  const s = (gameSecsLeft % 60).toString().padStart(2, '0');
+  const el = document.getElementById('gameTimer');
+  if (el) {
+    el.textContent = m + ':' + s;
+    el.classList.toggle('danger', gameSecsLeft <= 60);
+  }
+}
+
+function tickGameTimer() {
+  if (!gameActive) return;
+  gameSecsLeft--;
+  updateGameTimer();
+  if (gameSecsLeft <= 0) endGame('timeout');
+}
+
+// -- Entry point ----------------------------
+function startGame() {
+  buildGameWordPool();
+  // Reset custom input state each time modal opens
+  const inp = document.getElementById('customWordInput');
+  const err = document.getElementById('customWordError');
+  if (inp) { inp.value = ''; inp.className = 'custom-word-input'; }
+  if (err) err.textContent = '';
+  document.getElementById('timePicker').style.display = 'flex';
+  setTimeout(() => { if (inp) inp.focus(); }, 100);
+}
+window.startGame = startGame;
+
+function closeTimePicker() {
+  document.getElementById('timePicker').style.display = 'none';
+}
+window.closeTimePicker = closeTimePicker;
+
+function clearCustomWord() {
+  const inp = document.getElementById('customWordInput');
+  const err = document.getElementById('customWordError');
+  if (inp) { inp.value = ''; inp.className = 'custom-word-input'; }
+  if (err) err.textContent = '';
+  if (inp) inp.focus();
+}
+window.clearCustomWord = clearCustomWord;
+
+// -- Begin game with chosen minutes ---------
+function beginGame(minutes) {
+  const inp = document.getElementById('customWordInput');
+  const err = document.getElementById('customWordError');
+  const customVal = inp ? inp.value.trim().toLowerCase() : '';
+
+  // Validate custom word if provided
+  if (customVal) {
+    if (customVal.length < 3) {
+      if (err) err.textContent = '? Word must be at least 3 letters';
+      if (inp) inp.className = 'custom-word-input invalid';
+      return;
+    }
+
+    const subs = findGameCandidates(customVal);
+    // Valid custom word – accept regardless of sub-word count
+    if (inp) inp.className = 'custom-word-input valid';
+    if (err) err.textContent = subs.length === 0 ? 'No sub-words found — but good luck!' : '';
+    gameWord   = customVal;
+    gameAnswer = subs;
+  } else {
+    // Pick random word from curated pool
+    gameWord   = GAME_WORD_POOL[Math.floor(Math.random() * GAME_WORD_POOL.length)];
+    gameAnswer = findGameCandidates(gameWord);
+  }
+
+  closeTimePicker();
+  gameFound  = new Set();
+  gameSecsLeft = minutes * 60;
+  gameActive = true;
+
+  // (gameAnswer already set above)
+  gameFound  = new Set();
+  gameSecsLeft = minutes * 60;
+  gameActive = true;
+
+  // Build tiles in original order
+  const scrambled = gameWord;
+  const tilesEl = document.getElementById('gameTiles');
+  tilesEl.innerHTML = '';
+  [...scrambled.toUpperCase()].forEach((ch, i) => {
+    const t = document.createElement('div');
+    t.className = 'game-tile';
+    t.textContent = ch;
+    t.style.animationDelay = i * 60 + 'ms';
+    tilesEl.appendChild(t);
+  });
+
+  // Reset UI
+  document.getElementById('gameProgress').textContent = '0 / ' + gameAnswer.length;
+  document.getElementById('gameFoundGrid').innerHTML = '';
+  document.getElementById('gameFeedback').textContent = '';
+  document.getElementById('gameFeedback').className = 'game-feedback';
+  document.getElementById('gameInput').value = '';
+  updateGameTimer();
+
+  // Hide search UI, show game screen
+  ['heroIntro','resultsSection','statsBar','filterBar','emptyState','loading','backBar']
+    .forEach(id => setVisible(document.getElementById(id), false));
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('searchSection').style.display = 'none';
+
+  setTimeout(() => document.getElementById('gameInput').focus(), 120);
+  gameTimerId = setInterval(tickGameTimer, 1000);
+}
+window.beginGame = beginGame;
+
+// -- Submit a word guess --------------------
+function submitGameWord() {
+  if (!gameActive) return;
+  const inp  = document.getElementById('gameInput');
+  const word = inp.value.trim().toLowerCase();
+  inp.value  = '';
+  inp.focus();
+
+  if (!word) {
+    showGFeedback('Please type a word', 'warn');
+    return;
+  }
+  if (gameFound.has(word)) {
+    showGFeedback('"' + word + '" already found!', 'duplicate');
+    return;
+  }
+  if (gameAnswer.includes(word)) {
+    gameFound.add(word);
+    showGFeedback('? "' + word + '" — Nice!', 'correct');
+    addGameFoundCard(word);
+    document.getElementById('gameProgress').textContent = gameFound.size + ' / ' + gameAnswer.length;
+    if (gameFound.size === gameAnswer.length) endGame('victory');
+  } else {
+    showGFeedback('? "' + word + '" — Not valid', 'wrong');
+  }
+}
+window.submitGameWord = submitGameWord;
+
+function addGameFoundCard(word) {
+  const grid = document.getElementById('gameFoundGrid');
+  const card = document.createElement('div');
+  card.className = 'game-found-card';
+  card.innerHTML = '<span class="gcard-word">' + word + '</span>'
+    + '<span class="gcard-len">' + word.length + 'L</span>';
+  grid.prepend(card);
+}
+
+function showGFeedback(msg, type) {
+  const el = document.getElementById('gameFeedback');
+  el.textContent = msg;
+  el.className = 'game-feedback ' + type;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => {
+    el.textContent = '';
+    el.className = 'game-feedback';
+  }, 1800);
+}
+
+// -- End game -------------------------------
+function endGame(reason) {
+  gameActive = false;
+  clearInterval(gameTimerId);
+
+  const endBox   = document.getElementById('gameEndBox');
+  const icon     = document.getElementById('gameEndIcon');
+  const title    = document.getElementById('gameEndTitle');
+  const msg      = document.getElementById('gameEndMsg');
+  const missedSec= document.getElementById('missedSection');
+  const missedG  = document.getElementById('missedGrid');
+
+  if (reason === 'victory') {
+    endBox.className = 'modal-box victory';
+    icon.textContent  = '??';
+    title.textContent = 'You Win!';
+    msg.textContent   = 'Amazing! You found all ' + gameAnswer.length + ' words hidden in "' + gameWord + '"!';
+    missedSec.style.display = 'none';
+  } else {
+    const missed = gameAnswer.filter(w => !gameFound.has(w));
+    endBox.className  = 'modal-box timeout';
+    icon.textContent  = '?';
+    title.textContent = "Time's Up!";
+    msg.textContent   = 'You found ' + gameFound.size + ' of ' + gameAnswer.length + ' words from "' + gameWord + '".';
+    if (missed.length > 0) {
+      missedSec.style.display = 'block';
+      missedG.innerHTML = '';
+      missed.sort((a,b) => b.length - a.length || a.localeCompare(b))
+            .forEach(w => {
+              const sp = document.createElement('span');
+              sp.className = 'missed-word';
+              sp.textContent = w;
+              missedG.appendChild(sp);
+            });
+    } else {
+      missedSec.style.display = 'none';
+    }
+  }
+
+  document.getElementById('gameEndModal').style.display = 'flex';
+}
+
+// -- Play Again / Exit ----------------------
+function playAgain() {
+  document.getElementById('gameEndModal').style.display = 'none';
+  document.getElementById('gameScreen').style.display   = 'none';
+  document.getElementById('searchSection').style.display = '';
+  startGame();
+}
+window.playAgain = playAgain;
+
+function exitGame() {
+  gameActive = false;
+  clearInterval(gameTimerId);
+  document.getElementById('gameEndModal').style.display = 'none';
+  document.getElementById('gameScreen').style.display   = 'none';
+  document.getElementById('searchSection').style.display = '';
+  setVisible(document.getElementById('heroIntro'), true);
+}
+window.exitGame = exitGame;
