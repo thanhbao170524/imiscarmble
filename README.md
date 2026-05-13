@@ -11,7 +11,7 @@
 ### Yêu cầu
 
 - Trình duyệt hiện đại: **Chrome**, **Edge**, **Firefox**, **Safari** (phiên bản mới)
-- Kết nối Internet (để gọi Dictionary API)
+- Kết nối Internet (tùy chọn – chỉ dùng để lấy định nghĩa từ điển, không bắt buộc)
 - **Không cần** Node.js, npm hay bất kỳ công cụ build nào
 
 ### Cài đặt
@@ -45,6 +45,8 @@
    python -m http.server 8080
    # Mở: http://localhost:8080
    ```
+
+---
 
 ## 🔌 API sử dụng
 

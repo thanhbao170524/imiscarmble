@@ -1,7 +1,8 @@
 // ═══════════════════════════════════════════
 //   WordCraft – Main Application Logic
-//   API-first validation: only show words
-//   that have a real definition from API
+//   Validation: local DICTIONARY Set only.
+//   Definitions: fetched lazily from API with
+//   rate-limit queue + fallback.
 // ═══════════════════════════════════════════
 
 // ── State ──────────────────────────────────
@@ -14,12 +15,11 @@ let currentPage     = 1;
 const PAGE_SIZE     = 12;
 
 // Search history for back navigation
-// Each entry: { word, allFoundWords, definitionCache snapshot }
 let searchHistory   = [];
 let currentWord     = '';
 
-// ── Built-in definitions for short words ───
-// API doesn't support 1-2 letter words, so we hardcode them
+// ── Built-in definitions for short / common words ───
+// These bypass the API entirely.
 const SHORT_WORD_DEFS = {
   // 1-letter
   'a':  { pos: 'article',     text: 'Used before a noun to refer to a single, unspecified thing.' },
@@ -136,29 +136,53 @@ function findCandidates(inputWord) {
   return results;
 }
 
-// ── Dictionary API ─────────────────────────
+// ── Definition API with rate-limit queue ───
 const API_BASE = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
 
-async function fetchDefinition(word) {
-  if (definitionCache[word] !== undefined) return definitionCache[word];
-  try {
-    const res = await fetch(API_BASE + word, { signal: AbortSignal.timeout(6000) });
-    if (!res.ok) { definitionCache[word] = null; return null; }
-    const data = await res.json();
-    const meaning = data[0]?.meanings[0];
-    if (!meaning) { definitionCache[word] = null; return null; }
-    const def = {
-      pos:  meaning.partOfSpeech || '',
-      text: meaning.definitions[0]?.definition || ''
-    };
-    // Only accept if there's actual text
-    if (!def.text) { definitionCache[word] = null; return null; }
-    definitionCache[word] = def;
-    return def;
-  } catch {
-    definitionCache[word] = null;
-    return null;
-  }
+// Simple serial queue: one request at a time, 400 ms apart
+let _apiQueue    = Promise.resolve();
+let _lastReqTime = 0;
+const API_INTERVAL_MS = 400; // max ~2.5 req/s
+
+function enqueueApiRequest(word) {
+  _apiQueue = _apiQueue.then(async () => {
+    // Honour minimum interval between requests
+    const now = Date.now();
+    const wait = API_INTERVAL_MS - (now - _lastReqTime);
+    if (wait > 0) await delay(wait);
+    _lastReqTime = Date.now();
+
+    if (definitionCache[word] !== undefined) return; // already cached
+
+    try {
+      const res = await fetch(API_BASE + word, { signal: AbortSignal.timeout(8000) });
+      if (res.status === 429) {
+        // Rate-limited: set a placeholder and move on
+        definitionCache[word] = makeFallbackDef(word);
+        return;
+      }
+      if (!res.ok) {
+        definitionCache[word] = makeFallbackDef(word);
+        return;
+      }
+      const data = await res.json();
+      const meaning = data[0]?.meanings[0];
+      if (!meaning) { definitionCache[word] = makeFallbackDef(word); return; }
+      const def = {
+        pos:  meaning.partOfSpeech || 'word',
+        text: meaning.definitions[0]?.definition || ''
+      };
+      definitionCache[word] = def.text ? def : makeFallbackDef(word);
+    } catch {
+      definitionCache[word] = makeFallbackDef(word);
+    }
+  });
+  return _apiQueue;
+}
+
+/** Fallback definition when API is unavailable / rate-limited. */
+function makeFallbackDef(word) {
+  return { pos: 'word', text: `A valid English word (${word.length} letters).` };
 }
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -243,17 +267,39 @@ function makeWordCard(word, def) {
   return card;
 }
 
+/** Render current page of words. Words without a cached def get a spinner placeholder. */
 function renderWords(words) {
   resultsGrid.innerHTML = '';
   const start = (currentPage - 1) * PAGE_SIZE;
   const end   = start + PAGE_SIZE;
   const page  = words.slice(start, end);
   page.forEach((word, i) => {
-    const def = definitionCache[word];
-    if (!def) return;
+    const def = definitionCache[word] || makeFallbackDef(word);
     const card = makeWordCard(word, def);
     card.style.animationDelay = `${Math.min(i * 40, 400)}ms`;
     resultsGrid.appendChild(card);
+  });
+
+  // Lazily fetch definitions for visible words not yet in cache
+  fetchDefinitionsForPage(page);
+}
+
+/** Queue API lookups only for the words currently on screen. */
+function fetchDefinitionsForPage(pageWords) {
+  pageWords.forEach(word => {
+    // Skip words already definitively cached or covered by SHORT_WORD_DEFS
+    if (definitionCache[word] !== undefined) return;
+    enqueueApiRequest(word).then(() => {
+      // Update the card in-place if it's still visible
+      const card = document.getElementById('card-' + word);
+      if (card) {
+        const def = definitionCache[word] || makeFallbackDef(word);
+        const defEl = card.querySelector('.word-def');
+        const posEl = card.querySelector('.word-pos');
+        if (defEl) defEl.textContent = def.text.length > 90 ? def.text.slice(0,90)+'…' : def.text;
+        if (posEl) posEl.textContent = def.pos;
+      }
+    });
   });
 }
 
@@ -329,7 +375,6 @@ function buildPageRange(current, total) {
 function goToPage(page) {
   currentPage = page;
   applySortAndRender();
-  // Scroll results into view smoothly
   resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 window.goToPage = goToPage;
@@ -343,77 +388,12 @@ function updateStats(words, inputWord) {
 
 function setVisible(el, v) { el.style.display = v ? '' : 'none'; }
 
-// ── Progressive API Validation ─────────────
-/**
- * Validates candidates in batches.
- * Each confirmed word is added to the UI immediately.
- * searchId used to cancel stale requests if user starts new search.
- */
-async function validateAndDisplay(candidates, inputWord, searchId) {
-  const BATCH = 4;
-  const DELAY = 150;
-
-  // Sort candidates: longer words first (more interesting)
-  candidates.sort((a,b) => b.length - a.length || a.localeCompare(b));
-
-  let validatedCount = 0;
-
-  for (let i = 0; i < candidates.length; i += BATCH) {
-    if (currentSearch !== searchId) return; // user started new search
-
-    const batch = candidates.slice(i, i + BATCH);
-    const done  = i + BATCH;
-    setLoadingText(`Checking ${Math.min(done, candidates.length)} / ${candidates.length} words…`);
-
-    await Promise.all(batch.map(async (word) => {
-      if (currentSearch !== searchId) return;
-      const def = await fetchDefinition(word);
-      if (currentSearch !== searchId) return;
-
-      if (def && def.text) {
-        allFoundWords.push(word);
-        validatedCount++;
-
-        // Show results section on first valid word
-        if (validatedCount === 1) {
-          setVisible(loading, false);
-          setVisible(resultsSection, true);
-          setVisible(statsBar, true);
-          setVisible(filterBar, true);
-        }
-
-        // Re-sort and re-render current page (keeps page 1 updated live)
-        allFoundWords.sort((a,b) => a.localeCompare(b));
-        filteredWords = [...allFoundWords];
-        updateStats(allFoundWords, inputWord);
-        buildFilterButtons(allFoundWords);
-        totalCount.textContent = allFoundWords.length;
-
-        // Only re-render grid on page 1 to avoid disturbing the user's page
-        if (currentPage === 1) {
-          renderWords(filteredWords);
-        }
-        renderPagination(filteredWords.length);
-      }
-    }));
-
-    if (i + BATCH < candidates.length) await delay(DELAY);
-  }
-
-  if (currentSearch !== searchId) return;
-
-  // Finished validation
-  setVisible(loading, false);
-
-  if (allFoundWords.length === 0) {
-    setVisible(emptyState, true);
-  } else {
-    updateStats(allFoundWords, inputWord);
-    buildFilterButtons(allFoundWords);
-  }
-}
-
 // ── Main Search ────────────────────────────
+/**
+ * Finds all words formable from `inputWord` using the local DICTIONARY.
+ * No external API is called for validation — the Set membership check
+ * is the only gate. Definitions are fetched lazily per page.
+ */
 async function findWords() {
   const raw  = input.value;
   const word = sanitizeInput(raw).trim();
@@ -430,14 +410,9 @@ async function findWords() {
     return;
   }
 
-  // If user types in the box directly (not via useExample), clear history
-  if (word !== currentWord && !searchHistory.find(h => h.word === word)) {
-    // Only clear if it's a fresh manual search, not a back-navigation
-  }
-
   currentWord = word;
 
-  // Cancel previous search
+  // Cancel previous search token
   const searchId = ++currentSearch;
 
   // Reset state
@@ -456,12 +431,13 @@ async function findWords() {
   setVisible(emptyState, false);
   setVisible(loading, true);
   resultsGrid.innerHTML = '';
-  setLoadingText('Finding candidates…');
-  updateBackBar(); // show/hide back button
+  setLoadingText('Finding words…');
+  updateBackBar();
 
-  await delay(60);
+  await delay(40);
   if (currentSearch !== searchId) return;
 
+  // ── Local-only validation (instant, no API) ──
   const candidates = findCandidates(word);
 
   if (candidates.length === 0) {
@@ -470,10 +446,21 @@ async function findWords() {
     return;
   }
 
-  setLoadingText(`Validating ${candidates.length} candidates via dictionary API…`);
+  // Sort: longer words first so the first page is most interesting
+  candidates.sort((a,b) => b.length - a.length || a.localeCompare(b));
 
-  // Run progressive API validation
-  await validateAndDisplay(candidates, word, searchId);
+  // All candidates are valid (they're in the DICTIONARY Set)
+  allFoundWords = candidates;
+  filteredWords = [...allFoundWords];
+
+  setVisible(loading, false);
+  setVisible(resultsSection, true);
+  setVisible(statsBar, true);
+  setVisible(filterBar, true);
+
+  updateStats(allFoundWords, word);
+  buildFilterButtons(allFoundWords);
+  applySortAndRender();
 }
 window.findWords = findWords;
 
@@ -551,7 +538,7 @@ function updateBackBar() {
   const prevWord = searchHistory[searchHistory.length - 1].word;
   backWord.textContent = prevWord;
 
-  // Build breadcrumb trail: home > word1 > word2 > currentWord
+  // Build breadcrumb trail
   breadcrumb.innerHTML = '';
   const trail = [...searchHistory.map(h => h.word), currentWord];
   trail.forEach((w, idx) => {
@@ -572,7 +559,6 @@ function updateBackBar() {
 }
 
 function jumpToHistory(targetIdx) {
-  // Pop back to targetIdx (the clicked crumb)
   while (searchHistory.length > targetIdx + 1) searchHistory.pop();
   goBack();
 }
